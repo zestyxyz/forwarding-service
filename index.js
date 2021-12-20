@@ -25,7 +25,6 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
     res.send("Chain not supported");
   }
   const activeBanner = await networking.fetchActiveBanner(activeNFT.uri, req.params.format, req.params.style);
-  console.log(activeBanner);
   let image = activeBanner.data.image;
   image = image.match(/^.+\.(png|jpe?g)/i) ? image : helpers.parseProtocol(image);
 
