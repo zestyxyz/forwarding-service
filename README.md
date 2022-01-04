@@ -30,17 +30,19 @@ $ yarn start
 ./nginx/zesty.market.key
 ```
 
-3. Run docker-compose detached and build with the following command
+3. Create an `.env` file in the root of the repository. For now this is empty.
+
+4. Run docker-compose detached and build with the following command
 ```shell
 $ docker-compose up -d --build
 ```
 
-4. Stop the docker server
+5. Stop the docker server
 ```shell
 $ docker-compose stop
 ```
 
-5. Shutdown the docker server and remove volumes and images
+6. Shutdown the docker server and remove volumes and images
 ```shell
 $ docker-compose down -v --rmi local
 ```
