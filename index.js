@@ -49,7 +49,7 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
     let image = activeBanner.data.image;
     image = image.match(/^.+\.(png|jpe?g)/i) ? image : helpers.parseProtocol(image);
 
-    res.send(image);
+    res.redirect(image);
   }
 });
 
@@ -71,9 +71,9 @@ app.get('/:network/space/:id/cta', async function(req, res) {
 
   if (activeNFT.uri) {
     bannerObject = await networking.fetchActiveBanner(activeNFT.uri);
-    res.send(bannerObject.data.url);
+    res.redirect(bannerObject.data.url);
   } else {
-    res.send(`https://zesty.market/space/${req.params.id}?chainId=${chainId}`);
+    res.redirect(`https://app.zesty.market/space/${req.params.id}?chainId=${chainId}`);
   }
 });
 
