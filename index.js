@@ -1,5 +1,6 @@
 const express = require('express')
 const request = require('request');
+const cors = require('cors');
 const axios = require('axios');
 const networking = require('./utils/networking.js');
 const helpers = require('./utils/helpers.js');
@@ -7,6 +8,7 @@ const helpers = require('./utils/helpers.js');
 
 const app = express();
 const port = 3000;
+app.use(cors())
 
 const imageType = {
   jpg: 'ffd8ffe0',
