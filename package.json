@@ -1,6 +1,7 @@
 {
   "name": "forwarding-service",
   "version": "1.0.0",
+  "license": "MIT",
   "description": "forward graph data without need for scripting",
   "main": "index.js",
   "scripts": {
