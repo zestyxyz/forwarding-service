@@ -1,4 +1,5 @@
 const express = require('express')
+const request = require('request');
 const axios = require('axios');
 const networking = require('./utils/networking.js');
 const helpers = require('./utils/helpers.js');
@@ -6,6 +7,12 @@ const helpers = require('./utils/helpers.js');
 
 const app = express();
 const port = 3000;
+
+const imageType = {
+  jpg: 'ffd8ffe0',
+  png: '89504e47',
+  gif: '47494638'
+};
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -45,11 +52,38 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
   }
 
   else {
-    const activeBanner = await networking.fetchActiveBanner(activeNFT.uri, req.params.format, req.params.style);
+    const activeBanner = await networking.fetchActiveBanner(
+      activeNFT.uri, 
+      req.params.format, 
+      req.params.style
+    );
     let image = activeBanner.data.image;
     image = image.match(/^.+\.(png|jpe?g)/i) ? image : helpers.parseProtocol(image);
 
-    res.redirect(image);
+    request({ 
+      url: image, 
+      encoding: null 
+    }, (err, resp, buffer) => {
+      if (!err && resp.statusCode === 200){
+        var imageBytes = buffer.toString('hex',0,4);
+        if (imageBytes == imageType.jpg) {
+          res.set("Content-Type", "image/jpeg");
+          res.send(resp.body);
+        }
+        else if (imageBytes == imageType.png) {
+          res.set("Content-Type", "image/png");
+          res.send(resp.body);
+        } 
+        else if (imageBytes == imageType.gif) {
+          res.set("Content-Type", "image/gif");
+          res.send(resp.body);
+        }
+        else {
+          res.status(400);
+          res.send("Image file is not supported. Make sure image is either a jpeg, png, or gif");
+        }
+      }
+    });
   }
 });
 
