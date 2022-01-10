@@ -22,8 +22,6 @@ app.get('/', (req, res) => {
 
 
 app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
-  const activeNFT = await networking.fetchNFT(req.params.id, req.params.network);
-
   // validate chain
   let chainId;
   if (req.params.network == "polygon") {
@@ -35,6 +33,15 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
   } else {
     res.status(400);
     res.send("Chain not supported");
+    return;
+  }
+
+  // validate id
+  let id = parseInt(req.params.id);
+  if (isNaN(id) || id < 0) {
+    res.status(400);
+    res.send("Invalid space id");
+    return;
   }
 
   // validate style
@@ -54,6 +61,7 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
   }
 
   else {
+    const activeNFT = await networking.fetchNFT(id, req.params.network);
     const activeBanner = await networking.fetchActiveBanner(
       activeNFT.uri, 
       req.params.format, 
@@ -62,6 +70,16 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
     let image = activeBanner.data.image;
     image = image.match(/^.+\.(png|jpe?g)/i) ? image : helpers.parseProtocol(image);
 
+    // If beacons are activated ?beacon=1 send an onload event 
+    if (parseInt(req.query.beacon) === 1) {
+      try {
+        await axios.put(`https://beacon.zesty.market/api/v1/space/${id}`);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    // Send Image Buffer
     request({ 
       url: image, 
       encoding: null 
@@ -107,13 +125,31 @@ app.get('/:network/space/:id/cta', async function(req, res) {
   } else {
     res.status(400);
     res.send("Chain not supported");
+    return;
   }
+
+  // validate id
+  let id = parseInt(req.params.id);
+  if (isNaN(id) || id < 0) {
+    res.status(400);
+    res.send("Invalid space id");
+    return;
+  }
+
+    // If beacons are activated ?beacon=1 send an onclick event 
+    if (parseInt(req.query.beacon) === 1) {
+      try {
+        await axios.put(`https://beacon.zesty.market/api/v1/space/click/${id}`);
+      } catch (err) {
+        console.log(err);
+      }
+    }
 
   if (activeNFT.uri) {
     bannerObject = await networking.fetchActiveBanner(activeNFT.uri);
     res.redirect(bannerObject.data.url);
   } else {
-    res.redirect(`https://app.zesty.market/space/${req.params.id}?chainId=${chainId}`);
+    res.redirect(`https://app.zesty.market/space/${id}?chainId=${chainId}`);
   }
 });
 
