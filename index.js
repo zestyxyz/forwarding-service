@@ -66,7 +66,7 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
       url: image, 
       encoding: null 
     }, (err, resp, buffer) => {
-      if (!err && resp.statusCode === 200){
+      if (!err && resp.statusCode === 200) {
         var imageBytes = buffer.toString('hex',0,4);
         if (imageBytes == imageType.jpg) {
           res.set("Content-Type", "image/jpeg");
@@ -84,6 +84,10 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
           res.status(400);
           res.send("Image file is not supported. Make sure image is either a jpeg, png, or gif");
         }
+      } else {
+          res.status(500);
+          res.send("An error has occurred. Please inform the administrators at https://zesty.market");
+          console.log(err);
       }
     });
   }
