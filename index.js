@@ -79,7 +79,7 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
       }
     }
 
-    if (req.query.url == true) {
+    if (parseInt(req.query.url) === 1) {
       // Send Image URL
       res.send(image);
     }
