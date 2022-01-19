@@ -79,35 +79,42 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
       }
     }
 
-    // Send Image Buffer
-    request({ 
-      url: image, 
-      encoding: null 
-    }, (err, resp, buffer) => {
-      if (!err && resp.statusCode === 200) {
-        var imageBytes = buffer.toString('hex',0,4);
-        if (imageBytes == imageType.jpg) {
-          res.set("Content-Type", "image/jpeg");
-          res.send(resp.body);
+    if (req.query.url) {
+      // Send Image URL
+      res.send(image);
+    }
+    else {
+      // Send Image Buffer
+      request({ 
+        url: image, 
+        encoding: null 
+      }, (err, resp, buffer) => {
+        if (!err && resp.statusCode === 200) {
+          var imageBytes = buffer.toString('hex',0,4);
+          if (imageBytes == imageType.jpg) {
+            res.set("Content-Type", "image/jpeg");
+            res.send(resp.body);
+          }
+          else if (imageBytes == imageType.png) {
+            res.set("Content-Type", "image/png");
+            res.send(resp.body);
+          } 
+          else if (imageBytes == imageType.gif) {
+            res.set("Content-Type", "image/gif");
+            res.send(resp.body);
+          }
+          else {
+            res.status(400);
+            res.send("Image file is not supported. Make sure image is either a jpeg, png, or gif");
+          }
+        } else {
+            res.status(500);
+            res.send("An error has occurred. Please inform the administrators at https://zesty.market");
+            console.log(err);
         }
-        else if (imageBytes == imageType.png) {
-          res.set("Content-Type", "image/png");
-          res.send(resp.body);
-        } 
-        else if (imageBytes == imageType.gif) {
-          res.set("Content-Type", "image/gif");
-          res.send(resp.body);
-        }
-        else {
-          res.status(400);
-          res.send("Image file is not supported. Make sure image is either a jpeg, png, or gif");
-        }
-      } else {
-          res.status(500);
-          res.send("An error has occurred. Please inform the administrators at https://zesty.market");
-          console.log(err);
-      }
-    });
+      });
+    }
+
   }
 });
 
