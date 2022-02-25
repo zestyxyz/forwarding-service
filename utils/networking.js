@@ -1,17 +1,13 @@
 const axios = require('axios');
 const formatImport = require('../utils/formats.js');
 const helpers = require('../utils/helpers.js');
-//import { v4 as uuidv4 } from 'uuid'
-
-const API_BASE = 'https://beacon.zesty.market'
+const BEACON_GRAPHQL_URI = 'https://beacon2.zesty.market/zgraphql'
 
 const ENDPOINTS = {
     "matic": 'https://api.thegraph.com/subgraphs/name/zestymarket/zesty-market-graph-matic',
     "polygon": 'https://api.thegraph.com/subgraphs/name/zestymarket/zesty-market-graph-matic',
     "rinkeby": 'https://api.thegraph.com/subgraphs/name/zestymarket/zesty-market-graph-rinkeby'
 }
-
-//const sessionId = uuidv4();
 
 const DEFAULT_DATAS = {
   "uri": undefined,
@@ -41,7 +37,7 @@ const fetchNFT = async (space, network = 'polygon') => {
             id: "${space}"
           }
         )
-        { 
+        {
           sellerNFTSetting {
             sellerAuctions (
               first: 5
@@ -80,7 +76,7 @@ const fetchNFT = async (space, network = 'polygon') => {
  */
 const parseGraphResponse = res => {
   if (res.status != 200) {
-    return DEFAULT_DATAS 
+    return DEFAULT_DATAS
   }
   let sellerAuctions = res.data.data.tokenDatas[0]?.sellerNFTSetting?.sellerAuctions;
   let latestAuction = sellerAuctions?.find((auction, i) => {
@@ -88,7 +84,7 @@ const parseGraphResponse = res => {
   })?.buyerCampaigns[0];
 
   if (latestAuction == null) {
-    return DEFAULT_DATAS 
+    return DEFAULT_DATAS
   }
 
   return latestAuction;
@@ -123,15 +119,36 @@ const fetchActiveBanner = async (uri, format, style) => {
  */
 const sendOnLoadMetric = async (spaceId) => {
   try {
-    const spaceCounterEndpoint = API_BASE + `/api/v1/space/${spaceId}`
-    await axios.put(spaceCounterEndpoint)
+    await axios.post(
+      BEACON_GRAPHQL_URI,
+      { query: `mutation { increment(eventType: visits, spaceId: "${spaceId}") { message } }` },
+      { headers: { 'Content-Type': 'application/json' }}
+    )
   } catch (e) {
     console.log("Failed to emit onload event", e.message)
   }
 };
 
+/**
+ * Increment the click event count for the space
+ * @param {string} spaceId The space ID
+ * @returns A Promise representing the POST request
+ */
+const sendOnClickMetric = async (spaceId) => {
+  try {
+    await axios.post(
+      BEACON_GRAPHQL_URI,
+      { query: `mutation { increment(eventType: clicks, spaceId: "${spaceId}") { message } }` },
+      { headers: { 'Content-Type': 'application/json' }}
+    )
+  } catch (e) {
+    console.log("Failed to emit onclick event", e.message)
+  }
+}
+
 module.exports = {
   sendOnLoadMetric,
+  sendOnClickMetric,
   fetchActiveBanner,
   fetchNFT
 }
