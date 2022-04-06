@@ -117,7 +117,7 @@ const fetchActiveBanner = async (uri, format, style) => {
  * @param {string} spaceId The space ID
  * @returns A Promise representing the POST request
  */
-const sendOnLoadMetric = async (spaceId) => {
+const sendOnVisitMetric = async (spaceId) => {
   try {
     await axios.post(
       BEACON_GRAPHQL_URI,
@@ -147,7 +147,7 @@ const sendOnClickMetric = async (spaceId) => {
 }
 
 module.exports = {
-  sendOnLoadMetric,
+  sendOnVisitMetric,
   sendOnClickMetric,
   fetchActiveBanner,
   fetchNFT

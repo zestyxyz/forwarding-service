@@ -5,7 +5,6 @@ const axios = require('axios');
 const networking = require('./utils/networking.js');
 const helpers = require('./utils/helpers.js');
 
-
 const app = express();
 const port = 3000;
 app.use(cors())
@@ -53,7 +52,7 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
   if (!formatSet.has(format)) {
     res.status(400);
     res.send("Format not supported. Make sure format is 'tall', 'wide', 'square'.");
-  } 
+  }
 
   else if (!styleSet.has(style)) {
     res.status(400);
@@ -63,17 +62,17 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
   else {
     const activeNFT = await networking.fetchNFT(id, req.params.network);
     const activeBanner = await networking.fetchActiveBanner(
-      activeNFT.uri, 
-      req.params.format, 
+      activeNFT.uri,
+      req.params.format,
       req.params.style
     );
     let image = activeBanner.data.image;
     image = image.match(/^.+\.(png|jpe?g)/i) ? image : helpers.parseProtocol(image);
 
-    // If beacons are activated ?beacon=1 send an onload event 
+    // If beacons are activated ?beacon=1 send an onload event
     if (parseInt(req.query.beacon) === 1) {
       try {
-        await axios.put(`https://beacon.zesty.market/api/v1/space/${id}`);
+        await networking.sendOnVisitMetric(id);
       } catch (err) {
         console.log(err);
       }
@@ -85,9 +84,9 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
     }
     else {
       // Send Image Buffer
-      request({ 
-        url: image, 
-        encoding: null 
+      request({
+        url: image,
+        encoding: null
       }, (err, resp, buffer) => {
         if (!err && resp.statusCode === 200) {
           var imageBytes = buffer.toString('hex',0,4);
@@ -98,7 +97,7 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
           else if (imageBytes == imageType.png) {
             res.set("Content-Type", "image/png");
             res.send(resp.body);
-          } 
+          }
           else if (imageBytes == imageType.gif) {
             res.set("Content-Type", "image/gif");
             res.send(resp.body);
@@ -143,10 +142,10 @@ app.get('/:network/space/:id/cta', async function(req, res) {
     return;
   }
 
-    // If beacons are activated ?beacon=1 send an onclick event 
+    // If beacons are activated ?beacon=1 send an onclick event
     if (parseInt(req.query.beacon) === 1) {
       try {
-        await axios.put(`https://beacon.zesty.market/api/v1/space/click/${id}`);
+        await networking.sendOnClickMetric(id);
       } catch (err) {
         console.log(err);
       }
