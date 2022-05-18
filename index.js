@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
-
+// Get image
 app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
   // validate chain
   let chainId;
@@ -72,7 +72,7 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
     // If beacons are activated ?beacon=1 send an onload event
     if (parseInt(req.query.beacon) === 1) {
       try {
-        await networking.sendOnVisitMetric(id);
+        await networking.sendOnLoadMetric(id);
       } catch (err) {
         console.log(err);
       }
@@ -108,8 +108,7 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
           }
         } else {
             res.status(500);
-            res.send("An error has occurred. Please inform the administrators at https://zesty.market");
-            console.log(err);
+            res.send("An error has occurred. Please inform the administrators at https://zesty.market"); console.log(err);
         }
       });
     }
@@ -117,6 +116,7 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
   }
 });
 
+// Get CTA
 app.get('/:network/space/:id/cta', async function(req, res) {
   const activeNFT = await networking.fetchNFT(req.params.id, req.params.network);
 
@@ -156,6 +156,44 @@ app.get('/:network/space/:id/cta', async function(req, res) {
     res.redirect(bannerObject.data.url);
   } else {
     res.redirect(`https://app.zesty.market/space/${id}?chainId=${chainId}`);
+  }
+});
+
+app.get('/:network/space/:id/click', async function(req, res) {
+  let id = parseInt(req.params.id);
+  if (isNaN(id) || id < 0) {
+    res.status(400);
+    res.send("Invalid space id");
+    return;
+  } 
+  
+  try {
+    await networking.sendOnClickMetric(id);
+    return "OK";
+  } catch (e) {
+    console.log(e);
+    res.status(400);
+    res.send("Error in sending on click metric")
+    return;
+  }
+});
+
+app.get('/:network/space/:id/visit', async function(req, res) {
+  let id = parseInt(req.params.id);
+  if (isNaN(id) || id < 0) {
+    res.status(400);
+    res.send("Invalid space id");
+    return;
+  } 
+  
+  try {
+    await networking.sendOnLoadMetric(id);
+    return "OK";
+  } catch (e) {
+    console.log(e);
+    res.status(400);
+    res.send("Error in sending on visit metric")
+    return;
   }
 });
 

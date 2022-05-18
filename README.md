@@ -60,6 +60,26 @@ You may deploy the forwarding service yourself or utilize the one provided by Ze
     This uses the polygon network. Refers to ZestyNFT id=1. 
     Turns on the beacon to track _onclick_ data.
 
+3. `/:network/space/:id/click`
+
+    This endpoint increments the click count for a given space
+
+    **Parameters**
+
+    `:network` this field can be `polygon`, `matic`, `rinkeby`
+
+    `:id` this field is a integer greater or equal to 0 that corresponds with the ZestyNFT id
+
+3. `/:network/space/:id/visits`
+
+    This endpoint increments the visits count for a given space
+
+    **Parameters**
+
+    `:network` this field can be `polygon`, `matic`, `rinkeby`
+
+    `:id` this field is a integer greater or equal to 0 that corresponds with the ZestyNFT id
+
 # Quickstart for Development
 1. Install necessary dependencies with yarn. The version of node which this was developed on is version `v16.7.0`
 ```shell
