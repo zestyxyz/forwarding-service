@@ -70,15 +70,23 @@ You may deploy the forwarding service yourself or utilize the one provided by Ze
 
     `:id` this field is a integer greater or equal to 0 that corresponds with the ZestyNFT id
 
-3. `/:network/space/:id/visits`
+4. `/:network/space/:id/visit`
 
-    This endpoint increments the visits count for a given space
+    This endpoint increments the visit count for a given space
 
     **Parameters**
 
     `:network` this field can be `polygon`, `matic`, `rinkeby`
 
     `:id` this field is a integer greater or equal to 0 that corresponds with the ZestyNFT id
+
+4. `/beacons/:id/visit`
+
+    This endpoint increments the visit count for a given beacon id, meant to be used outside of the context of zesty nfts.
+
+    **Parameters**
+
+    `:id` this a string field that is provided by the beacon server when a generic beacon is registered
 
 # Quickstart for Development
 1. Install necessary dependencies with yarn. The version of node which this was developed on is version `v16.7.0`
