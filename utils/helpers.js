@@ -28,6 +28,25 @@ const parseProtocol = uri => {
   }
 }
 
+const getIPFSGateway = () => {
+  const gateways = [
+    { gateway: 'https://cloudflare-ipfs.com', weight: 35 },
+    { gateway: 'https://gateway.pinata.cloud', weight: 35 },
+    { gateway: 'https://dweb.link', weight: 30 }
+  ];
+
+  const weights = [];
+  let i;
+  for (i = 0; i < gateways.length; i++) {
+    weights[i] = gateways[i].weight + (weights[i - 1] || 0);
+  }
+  const random = Math.random() * weights[weights.length - 1];
+  for (i = 0; i < weights.length; i++) {
+    if (weights[i] > random) break;
+  }
+  return gateways[i].gateway;
+}
+
 /**
  * Performs feature detection on XRHand and XRMediaBinding to determine if user is on Oculus Quest.
  * As of 10/15/21, only Oculus Browser has implemented the WebXR Hand Input Module and WebXR Layers API.
@@ -51,8 +70,23 @@ const openURL = url => {
   window.open(url, '_blank');
 }
 
+const urlContainsUTMParams = (url) => {
+  return url.indexOf('utm_source=') !== -1 || url.indexOf('utm_campaign=') !== -1 || url.indexOf('utm_channel=') !== -1;
+}
+
+const appendUTMParams = (url, spaceId) => {
+  let new_url = new URL(url)
+  new_url.searchParams.set('utm_source', 'ZestyMarket');
+  new_url.searchParams.set('utm_campaign', 'ZestyCampaign');
+  new_url.searchParams.set('utm_channel', `SpaceId_${spaceId}`);
+  return new_url.href;
+}
+
 module.exports = {
   openURL,
   isOculusQuest,
-  parseProtocol
+  parseProtocol,
+  getIPFSGateway,
+  urlContainsUTMParams,
+  appendUTMParams
 }

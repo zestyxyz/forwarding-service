@@ -1,13 +1,16 @@
 const axios = require('axios');
 const formatImport = require('../utils/formats.js');
 const helpers = require('../utils/helpers.js');
-const BEACON_GRAPHQL_URI = 'https://beacon2.zesty.market/zgraphql'
+const BEACON_GRAPHQL_URI = 'https://beacon2.zesty.market/zgraphql';
+const BEACON_GRAPHQL_GENERAL_URI = 'https://beacon2.zesty.market/graphql';
 
 const ENDPOINTS = {
     "matic": 'https://api.thegraph.com/subgraphs/name/zestymarket/zesty-market-graph-matic',
     "polygon": 'https://api.thegraph.com/subgraphs/name/zestymarket/zesty-market-graph-matic',
     "rinkeby": 'https://api.thegraph.com/subgraphs/name/zestymarket/zesty-market-graph-rinkeby'
 }
+
+//const sessionId = uuidv4();
 
 const DEFAULT_DATAS = {
   "uri": undefined,
@@ -37,7 +40,7 @@ const fetchNFT = async (space, network = 'polygon') => {
             id: "${space}"
           }
         )
-        {
+        { 
           sellerNFTSetting {
             sellerAuctions (
               first: 5
@@ -53,6 +56,7 @@ const fetchNFT = async (space, network = 'polygon') => {
                 uri
               }
               buyerCampaignsApproved
+              buyerCampaignsIdList
             }
           }
           id
@@ -76,15 +80,19 @@ const fetchNFT = async (space, network = 'polygon') => {
  */
 const parseGraphResponse = res => {
   if (res.status != 200) {
-    return DEFAULT_DATAS
+    return DEFAULT_DATAS 
   }
   let sellerAuctions = res.data.data.tokenDatas[0]?.sellerNFTSetting?.sellerAuctions;
-  let latestAuction = sellerAuctions?.find((auction, i) => {
-    if (auction.buyerCampaigns.length > 0 && auction.buyerCampaignsApproved[i]) return auction;
-  })?.buyerCampaigns[0];
-
+  let latestAuction = null;
+  sellerAuctions?.[0]?.buyerCampaignsApproved?.find((campaign, i) => {
+    if (campaign) {
+      const campaignId = sellerAuctions[0].buyerCampaignsIdList[i]; // Graph stores as string, coerce to int
+      latestAuction = sellerAuctions[0].buyerCampaigns.find(campaign => campaign.id === campaignId)
+    }
+  });
+  
   if (latestAuction == null) {
-    return DEFAULT_DATAS
+    return DEFAULT_DATAS 
   }
 
   return latestAuction;
@@ -95,19 +103,24 @@ const parseGraphResponse = res => {
  * @param {string} uri The IPFS URI containing the banner content.
  * @param {string} format The default banner image format to use if there is no active banner.
  * @param {string} style The default banner image style to use if there is no active banner.
+ * @param {string} formatsOverride Object to override the default format object.
  * @returns An object with the requested banner content, or a default if it cannot be retrieved.
  */
-const fetchActiveBanner = async (uri, format, style) => {
+const fetchActiveBanner = async (uri, format, style, space, formatsOverride) => {
   if (!uri) {
     let bannerObject = { uri: 'DEFAULT_URI', data: DEFAULT_URI_CONTENT };
-    let newFormat = format || formatImport.defaultFormat;
-    let newStyle = style || formatImport.defaultStyle;
-    bannerObject.data.image = formatImport.formats[newFormat].style[newStyle];
+    let newFormat = format || defaultFormat;
+    let newStyle = style || defaultStyle;
+    let usedFormats = formatsOverride || formatImport.formats;
+    bannerObject.data.image = usedFormats[newFormat].style[newStyle];
     return bannerObject;
   }
 
   return axios.get(helpers.parseProtocol(uri))
   .then((res) => {
+    if(!helpers.urlContainsUTMParams(res.data.url)) {
+      res.data.url = helpers.appendUTMParams(res.data.url, space);
+    }
     return res.status == 200 ? { uri: uri, data: res.data } : null
   })
 }
@@ -117,7 +130,7 @@ const fetchActiveBanner = async (uri, format, style) => {
  * @param {string} spaceId The space ID
  * @returns A Promise representing the POST request
  */
-const sendOnVisitMetric = async (spaceId) => {
+const sendOnLoadMetric = async (spaceId) => {
   try {
     await axios.post(
       BEACON_GRAPHQL_URI,
@@ -129,11 +142,18 @@ const sendOnVisitMetric = async (spaceId) => {
   }
 };
 
-/**
- * Increment the click event count for the space
- * @param {string} spaceId The space ID
- * @returns A Promise representing the POST request
- */
+const sendOnLoadMetricGeneral = async (spaceId) => {
+  try {
+    await axios.post(
+      BEACON_GRAPHQL_GENERAL_URI,
+      { query: `mutation { increment(beaconId: "sK2nkLDWaMYZCxjzE3al", eventType: visits) { message  } }` },
+      { headers: { 'Content-Type': 'application/json' }}
+    )
+  } catch (e) {
+    console.log("Failed to emit onload event", e.message)
+  }
+};
+
 const sendOnClickMetric = async (spaceId) => {
   try {
     await axios.post(
@@ -147,7 +167,8 @@ const sendOnClickMetric = async (spaceId) => {
 }
 
 module.exports = {
-  sendOnVisitMetric,
+  sendOnLoadMetric,
+  sendOnLoadMetricGeneral,
   sendOnClickMetric,
   fetchActiveBanner,
   fetchNFT
