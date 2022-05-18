@@ -107,12 +107,12 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
             res.send("Image file is not supported. Make sure image is either a jpeg, png, or gif");
           }
         } else {
-            res.status(500);
-            res.send("An error has occurred. Please inform the administrators at https://zesty.market"); console.log(err);
+          res.status(500);
+          res.send("An error has occurred. Please inform the administrators at https://zesty.market"); 
+          console.log(err);
         }
       });
     }
-
   }
 });
 
@@ -159,6 +159,7 @@ app.get('/:network/space/:id/cta', async function(req, res) {
   }
 });
 
+// allows users to call click event on beacon directly
 app.get('/:network/space/:id/click', async function(req, res) {
   let id = parseInt(req.params.id);
   if (isNaN(id) || id < 0) {
@@ -169,7 +170,7 @@ app.get('/:network/space/:id/click', async function(req, res) {
   
   try {
     await networking.sendOnClickMetric(id);
-    return "OK";
+    return res.send("OK");
   } catch (e) {
     console.log(e);
     res.status(400);
@@ -178,6 +179,7 @@ app.get('/:network/space/:id/click', async function(req, res) {
   }
 });
 
+// allows users to call visit event on beacon directly
 app.get('/:network/space/:id/visit', async function(req, res) {
   let id = parseInt(req.params.id);
   if (isNaN(id) || id < 0) {
@@ -188,7 +190,21 @@ app.get('/:network/space/:id/visit', async function(req, res) {
   
   try {
     await networking.sendOnLoadMetric(id);
-    return "OK";
+    return res.send("OK");
+  } catch (e) {
+    console.log(e);
+    res.status(400);
+    res.send("Error in sending on visit metric")
+    return;
+  }
+});
+
+// allows users to call visit event on beacon directly
+app.get('/beacon/:id/visit', async function(req, res) {
+  let id = parseInt(req.params.id); 
+  try {
+    await networking.sendOnLoadMetricGeneral(id);
+    return res.send("OK");
   } catch (e) {
     console.log(e);
     res.status(400);
