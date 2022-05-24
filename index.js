@@ -213,6 +213,16 @@ app.get('/beacon/:id/visit', async function(req, res) {
   }
 });
 
+app.get('/cv_script', async function(req, res) {
+  try {
+    res.sendFile(`${__dirname}/integrations/cv.js`);
+  } catch (e) {
+    console.log(e);
+    res.status(400);
+    res.send("Error sending CV integration script");
+  }
+})
+
 app.listen(port, () => {
   console.log(`Forwarding service listening at http://localhost:${port}`)
 })
