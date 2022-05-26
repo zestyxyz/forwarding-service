@@ -213,7 +213,7 @@ app.get('/beacon/:id/visit', async function(req, res) {
   }
 });
 
-app.get('/cv_script', async function(req, res) {
+app.get('/cvscript', async function(req, res) {
   try {
     res.sendFile(`${__dirname}/integrations/cv.js`);
   } catch (e) {
