@@ -1,127 +1,107 @@
 # Forwarding Service
+
 This service helps to forward thegraph queries to spaces which have limited scripting abilities other than links
 
 You may deploy the forwarding service yourself or utilize the one provided by Zesty Market at `https://forward.zesty.market`
 
-# Endpoints
-1. `/:network/space/:id/image/:format/:style?beacon=?` (GET)
+## Endpoints
 
-    This endpoint allows you to get the current image for the space. The fields are as supported in the zesty sdk repository. 
+1. `/space/:id/image/:format/:style?url=<url>&beacon=<beacon>` (GET)
 
+    This endpoint allows you to get the current image for the space. The fields are as supported in the zesty sdk repository.
 
     **Parameters**
 
-    `:network` this field can be `polygon`, `matic`, `rinkeby`
-
-    `:id` this field is a integer greater or equal to 0 that corresponds with the ZestyNFT id
+    `:id` this field is a string that corresponds to your ad unit id on the Zesty Marketplace
 
     `:format` this field can be `square`, `wide`, `tall`
 
     `:style` this field can be `standard`, `minimal`, `transparent`
 
-    `?beacon` this is an optional argument. 
+    `?url` this field is the canonical URL of your experience (e.g. `https://www.mygame.com`)
+
+    `&beacon` this is an optional argument to specify analytics behavior
 
     If `?beacon=1` _onload_ metrics will be sent to the beacon server at `https://beacon.zesty.market`.
 
     By default, beacon is not enabled.
 
-
     **Examples**
 
-    `/polygon/space/1/square/standard?beacon=1`
+    `/space/1/square/standard?url=https://www.mygame.com&beacon=1`
 
-    This uses the polygon network. Refers to ZestyNFT id=1. 
+    This refers to a Zesty ad unit with id=1.
     Displays a default image that's square and standard.
+    Specifies it's hosted on `https://www.mygame.com`.
     Turns on the beacon to track _onload_ data.
 
+2. `/space/:id/cta?url=<url>beacon=<beacon>` (GET)
 
-2. `/:network/space/:id/cta?beacon=?` (GET)
-
-    This endpoint allows you to get the current CTA. The fields are as supported in the zesty sdk repository. 
-
+    This endpoint allows you to get the current CTA. The fields are as supported in the zesty sdk repository.
 
     **Parameters**
 
-    `:network` this field can be `polygon`, `matic`, `rinkeby`
+    `:id` this field is a string that corresponds to your ad unit id on the Zesty Marketplace
 
-    `:id` this field is a integer greater or equal to 0 that corresponds with the ZestyNFT id
+    `?url` this field is the canonical URL of your experience (e.g. `https://www.mygame.com`)
 
-    `?beacon` this is an optional argument. 
+    `&beacon` this is an optional argument to specify analytics behavior
 
-    If `?beacon=1` _onclick_ metrics will be sent to the beacon server at `https://beacon.zesty.market`
+    If `?beacon=1` _onload_ metrics will be sent to the beacon server at `https://beacon.zesty.market`.
 
     By default, beacon is not enabled.
 
-
     **Examples**
 
-    `/polygon/space/1/cta?beacon=1`
+    `/space/1/cta?url=https://www.mygame.com&beacon=1`
 
-    This uses the polygon network. Refers to ZestyNFT id=1. 
+    This refers to a Zesty ad unit with id=1.
+    Specifies it's hosted on `https://www.mygame.com`.
     Turns on the beacon to track _onclick_ data.
 
-3. `/:network/space/:id/click`
+## Quickstart for Development
 
-    This endpoint increments the click count for a given space
-
-    **Parameters**
-
-    `:network` this field can be `polygon`, `matic`, `rinkeby`
-
-    `:id` this field is a integer greater or equal to 0 that corresponds with the ZestyNFT id
-
-4. `/:network/space/:id/visit`
-
-    This endpoint increments the visit count for a given space
-
-    **Parameters**
-
-    `:network` this field can be `polygon`, `matic`, `rinkeby`
-
-    `:id` this field is a integer greater or equal to 0 that corresponds with the ZestyNFT id
-
-4. `/beacons/:id/visit`
-
-    This endpoint increments the visit count for a given beacon id, meant to be used outside of the context of zesty nfts.
-
-    **Parameters**
-
-    `:id` this a string field that is provided by the beacon server when a generic beacon is registered
-
-# Quickstart for Development
 1. Install necessary dependencies with yarn. The version of node which this was developed on is version `v16.7.0`
-```shell
-$ yarn
-```
-2. Run index.js using
-```shell
-$ yarn start
-```
 
-# Quickstart for Deployment
-1. You will need to have docker, and docker-compose installed.
+    ```shell
+    yarn
+    ```
+
+2. Run index.js using
+
+    ```shell
+    yarn start
+    ```
+
+## Quickstart for Deployment
+
+1. You will need to have docker and docker-compose installed.
 
 2. Setup the necessary ssl certificates. `.pem` is the certificate, while `.key` refers to the private key
-```
-// replace
 
-./nginx/zesty.market.pem
-./nginx/zesty.market.key
-```
+    ```text
+    // replace
+
+    ./nginx/zesty.market.pem
+    ./nginx/zesty.market.key
+    ```
 
 3. Create an `.env` file in the root of the repository. For now this is empty.
 
 4. Run docker-compose detached and build with the following command
-```shell
-$ docker-compose up -d --build
-```
+
+    ```shell
+    docker-compose up -d --build
+    ```
 
 5. Stop the docker server
-```shell
-$ docker-compose stop
-```
+
+    ```shell
+    docker-compose stop
+    ```
 
 6. Shutdown the docker server and remove volumes and images
-```shell
-$ docker-compose down -v --rmi local
-```
+
+    ```shell
+    docker-compose down -v --rmi local
+    ```
