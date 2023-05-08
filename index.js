@@ -1,9 +1,8 @@
-const express = require('express')
-const request = require('request');
-const cors = require('cors');
-const axios = require('axios');
-const networking = require('./utils/networking.js');
-const helpers = require('./utils/helpers.js');
+import express from 'express';
+import request from 'request';
+import cors from 'cors';
+import * as networking from './utils/networking.js'
+import * as helpers from './utils/helpers.js'
 
 const app = express();
 const port = 3000;
@@ -20,28 +19,8 @@ app.get('/', (req, res) => {
 })
 
 // Get image
-app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
-  // validate chain
-  let chainId;
-  if (req.params.network == "polygon") {
-    chainId = 137;
-  } else if (req.params.network == "matic") {
-    chainId = 137
-  } else if (req.params.network == "rinkeby") {
-    chainId = 4;
-  } else {
-    res.status(400);
-    res.send("Chain not supported");
-    return;
-  }
-
-  // validate id
-  let id = parseInt(req.params.id);
-  if (isNaN(id) || id < 0) {
-    res.status(400);
-    res.send("Invalid space id");
-    return;
-  }
+app.get('/space/:id/image/:format/:style', async function(req, res) {
+  let id = req.params.id;
 
   // validate style
   let formatSet = new Set(['tall', 'wide', 'square']);
@@ -60,19 +39,15 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
   }
 
   else {
-    const activeNFT = await networking.fetchNFT(id, req.params.network);
-    const activeBanner = await networking.fetchActiveBanner(
-      activeNFT.uri,
-      req.params.format,
-      req.params.style
-    );
-    let image = activeBanner.data.image;
+    const activeCampaign = await networking.fetchCampaignAd(id, req.params.format, req.params.style, req.query.url, req.headers.origin);
+    let image = activeCampaign.Ads[0].asset_url;
     image = image.match(/^.+\.(png|jpe?g)/i) ? image : helpers.parseProtocol(image);
+    const campaignId = activeCampaign.CampaignId;
 
     // If beacons are activated ?beacon=1 send an onload event
     if (parseInt(req.query.beacon) === 1) {
       try {
-        await networking.sendOnLoadMetric(id);
+        await networking.sendOnLoadMetric(id, campaignId);
       } catch (err) {
         console.log(err);
       }
@@ -117,57 +92,29 @@ app.get('/:network/space/:id/image/:format/:style', async function(req, res) {
 });
 
 // Get CTA
-app.get('/:network/space/:id/cta', async function(req, res) {
-  const activeNFT = await networking.fetchNFT(req.params.id, req.params.network);
+app.get('/space/:id/cta', async function(req, res) {
+  const id = req.params.id;
+  const activeCampaign = await networking.fetchCampaignAd(id, req.params.format, req.params.style, req.query.url,  req.headers.origin);
+  const campaignId = activeCampaign.CampaignId;
 
-  // validate chain
-  let chainId;
-  if (req.params.network == "polygon") {
-    chainId = 137;
-  } else if (req.params.network == "matic") {
-    chainId = 137
-  } else if (req.params.network == "rinkeby") {
-    chainId = 4;
-  } else {
-    res.status(400);
-    res.send("Chain not supported");
-    return;
-  }
-
-  // validate id
-  let id = parseInt(req.params.id);
-  if (isNaN(id) || id < 0) {
-    res.status(400);
-    res.send("Invalid space id");
-    return;
-  }
-
-    // If beacons are activated ?beacon=1 send an onclick event
-    if (parseInt(req.query.beacon) === 1) {
-      try {
-        await networking.sendOnClickMetric(id);
-      } catch (err) {
-        console.log(err);
-      }
+  // If beacons are activated ?beacon=1 send an onclick event
+  if (parseInt(req.query.beacon) === 1) {
+    try {
+      await networking.sendOnClickMetric(id, campaignId);
+    } catch (err) {
+      console.log(err);
     }
+  }
 
-  if (activeNFT.uri) {
-    bannerObject = await networking.fetchActiveBanner(activeNFT.uri);
-    res.redirect(bannerObject.data.url);
+  if (activeCampaign.Ads[0].cta_url) {
+    res.redirect(activeCampaign.Ads[0].cta_url);
   } else {
-    res.redirect(`https://app.zesty.market/space/${id}?chainId=${chainId}`);
+    res.redirect(`https://www.zesty.market/`);
   }
 });
 
 // allows users to call click event on beacon directly
-app.get('/:network/space/:id/click', async function(req, res) {
-  let id = parseInt(req.params.id);
-  if (isNaN(id) || id < 0) {
-    res.status(400);
-    res.send("Invalid space id");
-    return;
-  } 
-  
+app.get('/space/:id/click', async function(req, res) {
   try {
     await networking.sendOnClickMetric(id);
     return res.send("OK");
@@ -180,14 +127,7 @@ app.get('/:network/space/:id/click', async function(req, res) {
 });
 
 // allows users to call visit event on beacon directly
-app.get('/:network/space/:id/visit', async function(req, res) {
-  let id = parseInt(req.params.id);
-  if (isNaN(id) || id < 0) {
-    res.status(400);
-    res.send("Invalid space id");
-    return;
-  } 
-  
+app.get('/space/:id/visit', async function(req, res) {
   try {
     await networking.sendOnLoadMetric(id);
     return res.send("OK");
