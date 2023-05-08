@@ -113,46 +113,6 @@ app.get('/space/:id/cta', async function(req, res) {
   }
 });
 
-// allows users to call click event on beacon directly
-app.get('/space/:id/click', async function(req, res) {
-  try {
-    await networking.sendOnClickMetric(id);
-    return res.send("OK");
-  } catch (e) {
-    console.log(e);
-    res.status(400);
-    res.send("Error in sending on click metric")
-    return;
-  }
-});
-
-// allows users to call visit event on beacon directly
-app.get('/space/:id/visit', async function(req, res) {
-  try {
-    await networking.sendOnLoadMetric(id);
-    return res.send("OK");
-  } catch (e) {
-    console.log(e);
-    res.status(400);
-    res.send("Error in sending on visit metric")
-    return;
-  }
-});
-
-// allows users to call visit event on beacon directly
-app.get('/beacon/:id/visit', async function(req, res) {
-  let id = parseInt(req.params.id); 
-  try {
-    await networking.sendOnLoadMetricGeneral(id);
-    return res.send("OK");
-  } catch (e) {
-    console.log(e);
-    res.status(400);
-    res.send("Error in sending on visit metric")
-    return;
-  }
-});
-
 app.listen(port, () => {
   console.log(`Forwarding service listening at http://localhost:${port}`)
 })
