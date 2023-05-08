@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { formats } from '../utils/formats.js';
-import { checkUserPlatform } from '../utils/helpers.js';
 //import { v4 as uuidv4 } from 'uuid'
 
 const BEACON_API_BASE = 'https://beacon.zesty.market'
@@ -61,11 +60,10 @@ const sendOnClickMetric = async (spaceId, campaignId = null) => {
 }
 
 const analyticsSession = async (spaceId, campaignId) => {
-  const { platform, confidence } = await checkUserPlatform();
   try {
     await axios.post(
       BEACON_GRAPHQL_URI,
-      { query: `mutation { increment(eventType: session, spaceId: \"${spaceId}\", campaignId: \"${campaignId}\", platform: { name: ${platform}, confidence: ${confidence} }) { message } }` },
+      { query: `mutation { increment(eventType: session, spaceId: \"${spaceId}\", campaignId: \"${campaignId}\", platform: { name: Unknown, confidence: None }) { message } }` },
       { headers: { 'Content-Type': 'application/json' }}
     )
   } catch (e) {
