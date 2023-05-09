@@ -5,16 +5,14 @@ import { formats } from '../utils/formats.js';
 const BEACON_API_BASE = 'https://beacon.zesty.market'
 const BEACON_GRAPHQL_URI = 'https://beacon2.zesty.market/zgraphql'
 
-const DB_ENDPOINT = 'https://api.zesty.market/api';
-// TODO: Determine best way to enable switching to staging
-const STAGING_DB_ENDPOINT = 'https://api-staging.zesty.market/api';
+const API_ENDPOINT = process.env.API_ENDPOINT || 'https://api.zesty.market/api';
 
 //const sessionId = uuidv4();
 
 const fetchCampaignAd = async (adUnitId, format = 'tall', style = 'standard', url, origin) => {
   try {
     const hostHeader = { Host: origin.split('//')[1], origin }
-    const res = await axios.get(`${DB_ENDPOINT}/ad?ad_unit_id=${adUnitId}&url=${url}`, {
+    const res = await axios.get(`${API_ENDPOINT}/ad?ad_unit_id=${adUnitId}&url=${url}`, {
       headers: hostHeader
     });
     return res.data;
