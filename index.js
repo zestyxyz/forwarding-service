@@ -2,7 +2,6 @@ import express from 'express';
 import request from 'request';
 import cors from 'cors';
 import * as networking from './utils/networking.js'
-import * as helpers from './utils/helpers.js'
 
 const app = express();
 const port = 3000;
